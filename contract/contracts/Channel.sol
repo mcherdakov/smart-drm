@@ -2,21 +2,23 @@
 pragma solidity ^0.8.17;
 
 contract Channel {
-    address payable private channelSender;
-    address payable private channelRecipient;
-    uint256 private startDate;
-    uint256 private channelTimeout;
+    address payable private i_channelSender;
+    address payable private i_channelRecipient;
+    uint256 private i_startDate;
+    uint256 private i_channelTimeout;
 
-    mapping(bytes32 => address) signatures;
+    mapping(bytes32 => address) private s_signatures;
 
-    constructor(address payable to, uint256 timeout) payable {
-        channelRecipient = to;
-        channelSender = payable(msg.sender);
-        startDate = block.timestamp;
-        channelTimeout = timeout;
+    constructor(address payable to, uint256 timeout) {
+        i_channelRecipient = to;
+        i_channelSender = payable(msg.sender);
+        i_startDate = block.timestamp;
+        i_channelTimeout = timeout;
     }
 
-    function CloseChannel(
+    function fund() public payable {}
+
+    function closeChannel(
         bytes32 h,
         uint8 v,
         bytes32 r,
@@ -31,7 +33,7 @@ contract Channel {
 
         signer = ecrecover(prefixedHash, v, r, s);
 
-        if (signer != channelSender && signer != channelRecipient) {
+        if (signer != i_channelSender && signer != i_channelRecipient) {
             revert();
         }
 
@@ -39,24 +41,40 @@ contract Channel {
 
         require(proof != h);
 
-        if (signatures[proof] == address(0x0)) {
-            signatures[proof] = signer;
+        if (s_signatures[proof] == address(0x0)) {
+            s_signatures[proof] = signer;
             return;
         }
 
-        if (signatures[proof] == signer) {
+        if (s_signatures[proof] == signer) {
             return;
         }
 
-        if (!channelRecipient.send(value)) {
+        if (!i_channelRecipient.send(value)) {
             revert();
         }
 
-        selfdestruct(channelSender);
+        selfdestruct(i_channelSender);
     }
 
-    function ChannelTimeout() public {
-        require(startDate + channelTimeout <= block.timestamp);
-        selfdestruct(channelSender);
+    function channelTimeout() public {
+        require(i_startDate + i_channelTimeout <= block.timestamp);
+        selfdestruct(i_channelSender);
+    }
+
+    function getChannelSender() public view returns (address) {
+        return i_channelSender;
+    }
+
+    function getChannelRecipient() public view returns (address) {
+        return i_channelRecipient;
+    }
+
+    function getStartDate() public view returns (uint256) {
+        return i_startDate;
+    }
+
+    function getChannelTimeout() public view returns (uint256) {
+        return i_channelTimeout;
     }
 }
