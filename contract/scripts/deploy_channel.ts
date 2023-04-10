@@ -8,7 +8,9 @@ async function main() {
   const signers = await ethers.getSigners();
   const account = signers[0];
 
-  const contract = await contractFactory.deploy(account.address, 1000000);
+  const contract = await contractFactory.deploy(account.address, 1000000, {
+    value: 10000,
+  });
   await contract.deployed();
 
   console.log(`Deployed, channel contract address: ${contract.address}`);

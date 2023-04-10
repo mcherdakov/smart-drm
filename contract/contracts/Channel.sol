@@ -9,14 +9,12 @@ contract Channel {
 
     mapping(bytes32 => address) private s_signatures;
 
-    constructor(address payable to, uint256 timeout) {
+    constructor(address payable to, uint256 timeout) payable {
         i_channelRecipient = to;
         i_channelSender = payable(msg.sender);
         i_startDate = block.timestamp;
         i_channelTimeout = timeout;
     }
-
-    function fund() public payable {}
 
     function closeChannel(
         bytes32 h,
@@ -54,12 +52,12 @@ contract Channel {
             revert();
         }
 
-        selfdestruct(i_channelSender);
+        destruct();
     }
 
     function channelTimeout() public {
         require(i_startDate + i_channelTimeout <= block.timestamp);
-        selfdestruct(i_channelSender);
+        destruct();
     }
 
     function getChannelSender() public view returns (address) {
@@ -77,4 +75,6 @@ contract Channel {
     function getChannelTimeout() public view returns (uint256) {
         return i_channelTimeout;
     }
+
+    function destruct() private {}
 }

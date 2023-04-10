@@ -1,53 +1,32 @@
 package main
 
 import (
-	"fmt"
+	"net/http"
+	"os"
 
-	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/gin-contrib/cors"
+	"github.com/gin-gonic/gin"
 )
 
-func test() error {
-	privateKey := "df57089febbacf7ba0bc227dafbffa9fc08a93fdc68e1e42411a14efcf23656e"
-
-	bobKey, err := crypto.HexToECDSA(privateKey)
-	if err != nil {
-		return err
-	}
-
-	data := []byte("hello")
-	hash := crypto.Keccak256Hash(data)
-
-	sig, err := crypto.Sign(hash.Bytes(), bobKey)
-	if err != nil {
-		return err
-	}
-
-	r := sig[:32]
-	s := sig[:32:64]
-	v := sig[64] + 27
-
-	fmt.Println(r, s, v)
-
-	return nil
-}
-
 func main() {
-	if err := test(); err != nil {
-		panic(err)
-	}
+	r := gin.Default()
+	r.Use(cors.New(cors.Config{
+		AllowOriginFunc: func(origin string) bool {
+			return true
+		},
+	}))
 
-	// address := common.HexToAddress(os.Getenv("CONTRACT_ADDRESS"))
-	// service, err := ethereum.NewService(os.Getenv("CHAIN_URL"), address)
-	// if err != nil {
-	// 	panic(err)
-	// }
+	r.GET("/bytecode", func(c *gin.Context) {
+		data, err := os.ReadFile("bin/Channel.bin")
+		if err != nil {
+			c.Error(err)
+			return
+		}
 
-	// ctx := context.Background()
-	// creators, err := service.GetCreators(ctx)
+		c.JSON(http.StatusOK, gin.H{
+			"bytecode": string(data),
+		})
+	})
 
-	// if err != nil {
-	// 	panic(err)
-	// }
-
-	// fmt.Println(creators)
+	r.Run()
 }
