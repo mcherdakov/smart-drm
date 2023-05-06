@@ -1,6 +1,9 @@
 <script>
     import { ethers } from "ethers";
     import { onMount } from "svelte";
+    import { navigate } from "svelte-navigator";
+    import { isConnected, provider, signer } from "./stores.js";
+    import Channel from "./Channel.svelte";
 
     let amount = "1";
     let timeout = 1000000;
@@ -10,21 +13,20 @@
 
     $: disabled = isProcessing || chanExists;
 
-    let provider, signer, contract;
-    let channel, chanAddr, chanBalance;
+    let contract, channel;
 
     onMount(async () => {
+        if (!$isConnected) {
+            navigate("/connect");
+            return;
+        }
+
         isProcessing = true;
 
         const res = await fetch("http://127.0.0.1:8000/drm");
         const data = await res.json();
 
-        provider = new ethers.providers.Web3Provider(window["ethereum"]);
-
-        await provider.send("eth_requestAccounts", []);
-        signer = provider.getSigner();
-
-        contract = new ethers.Contract(data.address, data.abi, signer);
+        contract = new ethers.Contract(data.address, data.abi, $signer);
 
         await fetchChannel();
 
@@ -32,7 +34,7 @@
     });
 
     async function fetchChannel() {
-        chanAddr = await contract.getUserChannel(signer.getAddress());
+        const chanAddr = await contract.getUserChannel($signer.getAddress());
         if (
             ethers.BigNumber.from(chanAddr).toString() ==
             ethers.BigNumber.from("0x0").toString()
@@ -40,8 +42,14 @@
             return;
         }
 
-        channel = await contract.getChannelProof(chanAddr);
-        chanBalance = await provider.getBalance(chanAddr);
+        const chanInfo = await contract.getChannelProof(chanAddr);
+        const chanBalance = await $provider.getBalance(chanAddr);
+
+        channel = {
+            ...chanInfo,
+            address: chanAddr,
+            balance: chanBalance,
+        };
 
         chanExists = true;
     }
@@ -73,19 +81,13 @@
                 {:else if chanExists}
                     Channel created
                 {:else}
-                    Create contract
+                    Create channel
                 {/if}
             </button>
         </form>
+
         {#if chanExists}
-            <p>
-                <b>Channel contract address:</b>
-                {chanAddr}<br />
-                <b>Paid through channel:</b>
-                {channel.value}<br />
-                <b>Channel balance:</b>
-                {chanBalance} wei
-            </p>
+            <Channel {channel} />
         {:else}
             <p>Created channel will be displayed here</p>
         {/if}

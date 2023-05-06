@@ -1,8 +1,10 @@
 <script>
-    let error = "";
-    let isConnected = false;
+    import { ethers } from "ethers";
+    import { isConnected, provider, signer } from "./stores.js";
 
-    function connect() {
+    let error = "";
+
+    async function connect() {
         let eth = window["ethereum"];
 
         if (eth === undefined) {
@@ -10,9 +12,13 @@
             return;
         }
 
+        provider.set(new ethers.providers.Web3Provider(window["ethereum"]));
+
         try {
-            eth.request({ method: "eth_requestAccounts" });
-            isConnected = true;
+            await $provider.send("eth_requestAccounts", []);
+            signer.set($provider.getSigner());
+
+            isConnected.set(true);
         } catch (err) {
             error = err;
             return;
@@ -29,8 +35,8 @@
             <div class="error">
                 <p>{error}</p>
             </div>
-            <button on:click={connect} disabled={isConnected}>
-                {#if !isConnected}
+            <button on:click={connect} disabled={$isConnected}>
+                {#if !$isConnected}
                     Connect to Metamask
                 {:else}
                     Connected

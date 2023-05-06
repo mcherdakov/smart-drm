@@ -3,6 +3,7 @@
     import Browse from "./Browse.svelte";
     import Connect from "./Connect.svelte";
     import Pay from "./Pay.svelte";
+    import { isConnected } from "./stores.js";
 </script>
 
 <main id="main">
@@ -10,18 +11,23 @@
         <Router>
             <div id="top">
                 <nav id="nav">
-                    <Link to="/">Browse</Link>
-                    <Link to="connect">Connect</Link>
-                    <Link to="pay">Pay</Link>
+                    {#if $isConnected}
+                        <Link to="browse">Browse</Link>
+                        <Link to="pay">Pay</Link>
+                    {:else}
+                        <Link to="connect">Connect</Link>
+                    {/if}
                 </nav>
             </div>
             <div>
-                <Route path="/">
-                    <Browse />
-                </Route>
+                <Route path="/" />
 
                 <Route path="connect">
                     <Connect />
+                </Route>
+
+                <Route path="browse">
+                    <Browse />
                 </Route>
 
                 <Route path="pay">
