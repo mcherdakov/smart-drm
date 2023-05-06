@@ -27,15 +27,16 @@ describe("Channel", function () {
     it("one fund", async function () {
       const balanceBefore = await receiver.getBalance();
 
-      const contract = channel.connect(sender);
+      const contract = channel.connect(receiver);
       const contractSender = await contract.getChannelSender();
       assert.equal(contractSender, sender.address);
 
       const value = 125;
+      const date = "01-01-2023";
 
       const payload = ethers.utils.defaultAbiCoder.encode(
-        ["address", "uint256"],
-        [contract.address, value]
+        ["address", "uint256", "string"],
+        [contract.address, value, date]
       );
 
       const payloadHash = ethers.utils.keccak256(payload);
@@ -45,11 +46,19 @@ describe("Channel", function () {
       );
 
       const splitSender = ethers.utils.splitSignature(signedSender);
+
+      const verifyAddr = ethers.utils.verifyMessage(
+        ethers.utils.arrayify(payloadHash),
+        splitSender
+      );
+      assert.equal(verifyAddr, sender.address);
+
       await channel.closeChannel(
         splitSender.v,
         splitSender.r,
         splitSender.s,
-        value
+        value,
+        date
       );
 
       const sigAddr = await channel.getSignatures(payloadHash);
@@ -64,7 +73,8 @@ describe("Channel", function () {
         splitReciever.v,
         splitReciever.r,
         splitReciever.s,
-        value
+        value,
+        date
       );
 
       const balanceAfter = await receiver.getBalance();

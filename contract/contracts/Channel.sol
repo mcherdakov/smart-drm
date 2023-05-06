@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.17;
 
-import "hardhat/console.sol";
-
 contract Channel {
     address payable private i_channelSender;
     address payable private i_channelRecipient;
@@ -22,11 +20,12 @@ contract Channel {
         uint8 v,
         bytes32 r,
         bytes32 s,
-        uint256 value
+        uint256 value,
+        string memory date
     ) public {
         address signer;
 
-        bytes32 proof = keccak256(abi.encode(this, value));
+        bytes32 proof = keccak256(abi.encode(this, value, date));
 
         bytes memory prefix = "\x19Ethereum Signed Message:\n32";
         bytes32 prefixedHash = keccak256(abi.encodePacked(prefix, proof));
@@ -47,7 +46,7 @@ contract Channel {
         }
 
         if (!i_channelRecipient.send(value)) {
-            revert();
+            revert("payment error");
         }
 
         destruct();
