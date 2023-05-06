@@ -1,8 +1,8 @@
 <script>
     import { Router, Route, Link } from "svelte-navigator";
-    import Home from "./Home.svelte";
+    import Browse from "./Browse.svelte";
     import Connect from "./Connect.svelte";
-    import Topup from "./Topup.svelte";
+    import Pay from "./Pay.svelte";
 </script>
 
 <main id="main">
@@ -10,22 +10,22 @@
         <Router>
             <div id="top">
                 <nav id="nav">
-                    <Link to="/">Home</Link>
+                    <Link to="/">Browse</Link>
                     <Link to="connect">Connect</Link>
-                    <Link to="topup">Top Up</Link>
+                    <Link to="pay">Pay</Link>
                 </nav>
             </div>
             <div>
                 <Route path="/">
-                    <Home />
+                    <Browse />
                 </Route>
 
                 <Route path="connect">
                     <Connect />
                 </Route>
 
-                <Route path="topup">
-                    <Topup />
+                <Route path="pay">
+                    <Pay />
                 </Route>
             </div>
         </Router>

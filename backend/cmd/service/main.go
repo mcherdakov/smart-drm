@@ -8,6 +8,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+const contractAddress = "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0"
+
 func main() {
 	r := gin.Default()
 	r.Use(cors.New(cors.Config{
@@ -16,15 +18,16 @@ func main() {
 		},
 	}))
 
-	r.GET("/bytecode", func(c *gin.Context) {
-		data, err := os.ReadFile("bin/Channel.bin")
+	r.GET("/drm", func(c *gin.Context) {
+		data, err := os.ReadFile("abi/SmartDRM.abi")
 		if err != nil {
 			c.Error(err)
 			return
 		}
 
 		c.JSON(http.StatusOK, gin.H{
-			"bytecode": string(data),
+			"abi":     string(data),
+			"address": contractAddress,
 		})
 	})
 

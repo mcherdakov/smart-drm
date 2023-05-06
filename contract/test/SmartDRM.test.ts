@@ -25,7 +25,7 @@ describe("SmartDRM", function () {
     it("adds channel to mapping", async function () {
       const contract = smartDRM.connect(user);
 
-      await contract.createChannel(100000);
+      await contract.createChannel(100000, { value: 10000 });
       const userChannel = await contract.getUserChannel(user.address);
       assert.notEqual(
         ethers.BigNumber.from(userChannel).toString(),
