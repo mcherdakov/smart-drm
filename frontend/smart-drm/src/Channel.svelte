@@ -4,30 +4,42 @@
 
     export let channel;
     let isProcessing = false;
+    const cost = 100;
+
+    async function savePayment(split, date, value, hash) {
+        const req = {
+            v: split.v,
+            r: split.r,
+            s: split.s,
+            date: date,
+            value: value,
+            hash: hash,
+        };
+
+        const res = await fetch("http://127.0.0.1:8000/pay", {
+            method: "POST",
+            body: JSON.stringify(req),
+        });
+
+        return res.json();
+    }
 
     async function pay() {
         isProcessing = true;
 
-        const value = parseInt(channel.value) + 100;
-        console.log(value);
-
+        const value = parseInt(channel.value) + cost;
         const date = new Date().toJSON().slice(0, 10);
-        console.log(date);
 
         const payload = ethers.utils.defaultAbiCoder.encode(
             ["address", "uint256", "string"],
             [channel.address, value, date]
         );
 
-        const payloadHash = ethers.utils.keccak256(payload);
+        const hash = ethers.utils.keccak256(payload);
+        const signed = await $signer.signMessage(ethers.utils.arrayify(hash));
+        const split = ethers.utils.splitSignature(signed);
 
-        const signedSender = await $signer.signMessage(
-            ethers.utils.arrayify(payloadHash)
-        );
-
-        const splitSender = ethers.utils.splitSignature(signedSender);
-
-        console.log(splitSender);
+        await savePayment(split, date, value, hash);
 
         isProcessing = false;
     }
