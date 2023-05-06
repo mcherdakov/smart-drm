@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.17;
 
+import "hardhat/console.sol";
+
 contract Channel {
     address payable private i_channelSender;
     address payable private i_channelRecipient;
@@ -17,27 +19,23 @@ contract Channel {
     }
 
     function closeChannel(
-        bytes32 h,
         uint8 v,
         bytes32 r,
         bytes32 s,
         uint256 value
     ) public {
         address signer;
-        bytes32 proof;
+
+        bytes32 proof = keccak256(abi.encode(this, value));
 
         bytes memory prefix = "\x19Ethereum Signed Message:\n32";
-        bytes32 prefixedHash = keccak256(abi.encodePacked(prefix, h));
+        bytes32 prefixedHash = keccak256(abi.encodePacked(prefix, proof));
 
         signer = ecrecover(prefixedHash, v, r, s);
 
         if (signer != i_channelSender && signer != i_channelRecipient) {
-            revert();
+            revert("invalid signer or hash");
         }
-
-        proof = keccak256(abi.encodePacked(this, value));
-
-        require(proof != h);
 
         if (s_signatures[proof] == address(0x0)) {
             s_signatures[proof] = signer;
@@ -74,6 +72,10 @@ contract Channel {
 
     function getChannelTimeout() public view returns (uint256) {
         return i_channelTimeout;
+    }
+
+    function getSignatures(bytes32 proof) public view returns (address) {
+        return s_signatures[proof];
     }
 
     function destruct() private {}
