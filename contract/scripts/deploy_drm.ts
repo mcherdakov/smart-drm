@@ -5,7 +5,14 @@ async function main() {
 
   console.log("deploying drm contract");
 
+  const signers = await ethers.getSigners();
+
+  console.log(`Contract creator: ${signers[0].address}`);
+
+  contractFactory.connect(signers[0]);
+
   const contract = await contractFactory.deploy();
+
   await contract.deployed();
 
   console.log(`Deployed drm contract, address: ${contract.address}`);

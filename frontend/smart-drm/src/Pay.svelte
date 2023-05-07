@@ -1,6 +1,6 @@
 <script>
     import { ethers } from "ethers";
-    import { onMount } from "svelte";
+    import { onDestroy, onMount } from "svelte";
     import { navigate } from "svelte-navigator";
     import { isConnected, provider, signer } from "./stores.js";
     import Channel from "./Channel.svelte";
@@ -14,6 +14,8 @@
     $: disabled = isProcessing || chanExists;
 
     let contract, channel;
+
+    intervalFetch(() => fetchChannel(), 1000);
 
     onMount(async () => {
         if (!$isConnected) {
@@ -32,6 +34,14 @@
 
         isProcessing = false;
     });
+
+    function intervalFetch(callback, milliseconds) {
+        const interval = setInterval(callback, milliseconds);
+
+        onDestroy(() => {
+            clearInterval(interval);
+        });
+    }
 
     async function fetchChannel() {
         const chanAddr = await contract.getUserChannel($signer.getAddress());

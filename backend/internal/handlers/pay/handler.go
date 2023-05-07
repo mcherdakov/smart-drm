@@ -1,6 +1,7 @@
 package pay
 
 import (
+	"context"
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
@@ -11,7 +12,7 @@ import (
 )
 
 type drmService interface {
-	SetProof(p drm.Proof) error
+	SetProof(ctx context.Context, p drm.Proof) error
 }
 
 type Handler struct {
@@ -37,7 +38,7 @@ func (h *Handler) Handle(c *gin.Context) {
 		return
 	}
 
-	if err := h.drm.SetProof(proof); err != nil {
+	if err := h.drm.SetProof(c, proof); err != nil {
 		c.Error(err)
 		return
 	}

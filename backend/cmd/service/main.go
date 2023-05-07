@@ -1,24 +1,45 @@
 package main
 
 import (
+	"context"
 	"log"
+	"os"
 
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
+
 	drmHandler "github.com/mcherdakov/smart-drm/backend/internal/handlers/drm"
 	"github.com/mcherdakov/smart-drm/backend/internal/handlers/pay"
+	"github.com/mcherdakov/smart-drm/backend/internal/pkg/contracts/repostory"
 	"github.com/mcherdakov/smart-drm/backend/internal/services/drm"
 )
 
-const contractAddress = "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0"
-
 func run() error {
+	godotenv.Load()
+
+	privateKey := os.Getenv("PRIVATE_KEY")
+	chainAddress := os.Getenv("CHAIN_ADDRESS")
+
+	ctx := context.Background()
+
 	drmService, err := drm.NewService(
-		"http://127.0.0.1:8545/",
-		common.HexToAddress(contractAddress[2:]),
+		chainAddress,
+		privateKey,
 	)
 	if err != nil {
+		return err
+	}
+
+	db, closeFunc, err := setupDB()
+	if err != nil {
+		return err
+	}
+	defer closeFunc()
+
+	contractRepo := repostory.NewRepository(db)
+
+	if err := setupContract(ctx, contractRepo, drmService); err != nil {
 		return err
 	}
 
@@ -29,7 +50,7 @@ func run() error {
 		},
 	}))
 
-	r.GET("/drm", drmHandler.NewHandler(contractAddress).Handle)
+	r.GET("/drm", drmHandler.NewHandler(drmService.Address()).Handle)
 	r.POST("/pay", pay.NewHandler(drmService).Handle)
 
 	return r.Run(":8000")

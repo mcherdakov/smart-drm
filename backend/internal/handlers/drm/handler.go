@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/gin-gonic/gin"
 )
 
@@ -11,9 +12,9 @@ type Handler struct {
 	contractAddress string
 }
 
-func NewHandler(contractAddress string) *Handler {
+func NewHandler(contractAddress common.Address) *Handler {
 	return &Handler{
-		contractAddress: contractAddress,
+		contractAddress: contractAddress.String(),
 	}
 }
 

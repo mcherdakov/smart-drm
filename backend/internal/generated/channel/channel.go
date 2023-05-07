@@ -31,7 +31,7 @@ var (
 
 // ChannelMetaData contains all meta data concerning the Channel contract.
 var ChannelMetaData = &bind.MetaData{
-	ABI: "[{\"inputs\":[{\"internalType\":\"addresspayable\",\"name\":\"to\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"timeout\",\"type\":\"uint256\"}],\"stateMutability\":\"payable\",\"type\":\"constructor\"},{\"inputs\":[],\"name\":\"channelTimeout\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"h\",\"type\":\"bytes32\"},{\"internalType\":\"uint8\",\"name\":\"v\",\"type\":\"uint8\"},{\"internalType\":\"bytes32\",\"name\":\"r\",\"type\":\"bytes32\"},{\"internalType\":\"bytes32\",\"name\":\"s\",\"type\":\"bytes32\"},{\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\"}],\"name\":\"closeChannel\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getChannelRecipient\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getChannelSender\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getChannelTimeout\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getStartDate\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"}]",
+	ABI: "[{\"inputs\":[{\"internalType\":\"addresspayable\",\"name\":\"to\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"timeout\",\"type\":\"uint256\"}],\"stateMutability\":\"payable\",\"type\":\"constructor\"},{\"inputs\":[],\"name\":\"channelTimeout\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint8\",\"name\":\"v\",\"type\":\"uint8\"},{\"internalType\":\"bytes32\",\"name\":\"r\",\"type\":\"bytes32\"},{\"internalType\":\"bytes32\",\"name\":\"s\",\"type\":\"bytes32\"},{\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\"},{\"internalType\":\"string\",\"name\":\"date\",\"type\":\"string\"}],\"name\":\"closeChannel\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getChannelRecipient\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getChannelSender\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getChannelTimeout\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"proof\",\"type\":\"bytes32\"}],\"name\":\"getSignatures\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getStartDate\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"}]",
 }
 
 // ChannelABI is the input ABI used to generate the binding from.
@@ -273,6 +273,37 @@ func (_Channel *ChannelCallerSession) GetChannelTimeout() (*big.Int, error) {
 	return _Channel.Contract.GetChannelTimeout(&_Channel.CallOpts)
 }
 
+// GetSignatures is a free data retrieval call binding the contract method 0x9bc51068.
+//
+// Solidity: function getSignatures(bytes32 proof) view returns(address)
+func (_Channel *ChannelCaller) GetSignatures(opts *bind.CallOpts, proof [32]byte) (common.Address, error) {
+	var out []interface{}
+	err := _Channel.contract.Call(opts, &out, "getSignatures", proof)
+
+	if err != nil {
+		return *new(common.Address), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(common.Address)).(*common.Address)
+
+	return out0, err
+
+}
+
+// GetSignatures is a free data retrieval call binding the contract method 0x9bc51068.
+//
+// Solidity: function getSignatures(bytes32 proof) view returns(address)
+func (_Channel *ChannelSession) GetSignatures(proof [32]byte) (common.Address, error) {
+	return _Channel.Contract.GetSignatures(&_Channel.CallOpts, proof)
+}
+
+// GetSignatures is a free data retrieval call binding the contract method 0x9bc51068.
+//
+// Solidity: function getSignatures(bytes32 proof) view returns(address)
+func (_Channel *ChannelCallerSession) GetSignatures(proof [32]byte) (common.Address, error) {
+	return _Channel.Contract.GetSignatures(&_Channel.CallOpts, proof)
+}
+
 // GetStartDate is a free data retrieval call binding the contract method 0x78f305c6.
 //
 // Solidity: function getStartDate() view returns(uint256)
@@ -325,23 +356,23 @@ func (_Channel *ChannelTransactorSession) ChannelTimeout() (*types.Transaction, 
 	return _Channel.Contract.ChannelTimeout(&_Channel.TransactOpts)
 }
 
-// CloseChannel is a paid mutator transaction binding the contract method 0xa5e84c26.
+// CloseChannel is a paid mutator transaction binding the contract method 0x1f43d633.
 //
-// Solidity: function closeChannel(bytes32 h, uint8 v, bytes32 r, bytes32 s, uint256 value) returns()
-func (_Channel *ChannelTransactor) CloseChannel(opts *bind.TransactOpts, h [32]byte, v uint8, r [32]byte, s [32]byte, value *big.Int) (*types.Transaction, error) {
-	return _Channel.contract.Transact(opts, "closeChannel", h, v, r, s, value)
+// Solidity: function closeChannel(uint8 v, bytes32 r, bytes32 s, uint256 value, string date) returns()
+func (_Channel *ChannelTransactor) CloseChannel(opts *bind.TransactOpts, v uint8, r [32]byte, s [32]byte, value *big.Int, date string) (*types.Transaction, error) {
+	return _Channel.contract.Transact(opts, "closeChannel", v, r, s, value, date)
 }
 
-// CloseChannel is a paid mutator transaction binding the contract method 0xa5e84c26.
+// CloseChannel is a paid mutator transaction binding the contract method 0x1f43d633.
 //
-// Solidity: function closeChannel(bytes32 h, uint8 v, bytes32 r, bytes32 s, uint256 value) returns()
-func (_Channel *ChannelSession) CloseChannel(h [32]byte, v uint8, r [32]byte, s [32]byte, value *big.Int) (*types.Transaction, error) {
-	return _Channel.Contract.CloseChannel(&_Channel.TransactOpts, h, v, r, s, value)
+// Solidity: function closeChannel(uint8 v, bytes32 r, bytes32 s, uint256 value, string date) returns()
+func (_Channel *ChannelSession) CloseChannel(v uint8, r [32]byte, s [32]byte, value *big.Int, date string) (*types.Transaction, error) {
+	return _Channel.Contract.CloseChannel(&_Channel.TransactOpts, v, r, s, value, date)
 }
 
-// CloseChannel is a paid mutator transaction binding the contract method 0xa5e84c26.
+// CloseChannel is a paid mutator transaction binding the contract method 0x1f43d633.
 //
-// Solidity: function closeChannel(bytes32 h, uint8 v, bytes32 r, bytes32 s, uint256 value) returns()
-func (_Channel *ChannelTransactorSession) CloseChannel(h [32]byte, v uint8, r [32]byte, s [32]byte, value *big.Int) (*types.Transaction, error) {
-	return _Channel.Contract.CloseChannel(&_Channel.TransactOpts, h, v, r, s, value)
+// Solidity: function closeChannel(uint8 v, bytes32 r, bytes32 s, uint256 value, string date) returns()
+func (_Channel *ChannelTransactorSession) CloseChannel(v uint8, r [32]byte, s [32]byte, value *big.Int, date string) (*types.Transaction, error) {
+	return _Channel.Contract.CloseChannel(&_Channel.TransactOpts, v, r, s, value, date)
 }

@@ -1,5 +1,7 @@
 package drm
 
+const SubscriptionPrice = 100
+
 type Proof struct {
 	V     int64  `json:"v"`
 	R     string `json:"r"`
