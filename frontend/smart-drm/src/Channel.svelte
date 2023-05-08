@@ -1,6 +1,6 @@
 <script>
     import { ethers } from "ethers";
-    import { signer } from "./stores.js";
+    import { signer, error } from "./stores.js";
 
     export let channel;
     let isProcessing = false;
@@ -21,7 +21,12 @@
             body: JSON.stringify(req),
         });
 
-        return res.json();
+        const data = await res.json();
+        if (data.error !== undefined) {
+            error.set(data.error);
+        }
+
+        return data;
     }
 
     async function pay() {

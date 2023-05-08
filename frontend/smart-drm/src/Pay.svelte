@@ -2,7 +2,7 @@
     import { ethers } from "ethers";
     import { onDestroy, onMount } from "svelte";
     import { navigate } from "svelte-navigator";
-    import { isConnected, provider, signer } from "./stores.js";
+    import { isConnected, provider, signer, error } from "./stores.js";
     import Channel from "./Channel.svelte";
 
     let amount = "1000";
@@ -27,6 +27,10 @@
 
         const res = await fetch("http://127.0.0.1:8000/drm");
         const data = await res.json();
+
+        if (data.error !== undefined) {
+            error.set(data.error);
+        }
 
         contract = new ethers.Contract(data.address, data.abi, $signer);
 
@@ -63,6 +67,10 @@
             `http://127.0.0.1:8000/proof?address=${chanAddr}`
         );
         const data = await res.json();
+
+        if (data.error !== undefined) {
+            error.set(data.error);
+        }
 
         channel = {
             ...chanInfo,

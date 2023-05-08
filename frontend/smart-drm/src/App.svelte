@@ -3,6 +3,7 @@
     import Browse from "./Browse.svelte";
     import Connect from "./Connect.svelte";
     import Pay from "./Pay.svelte";
+    import Error from "./Error.svelte";
     import { isConnected } from "./stores.js";
 </script>
 
@@ -19,6 +20,7 @@
                     {/if}
                 </nav>
             </div>
+            <Error />
             <div>
                 <Route path="/" />
 

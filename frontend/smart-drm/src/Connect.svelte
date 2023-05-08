@@ -1,14 +1,12 @@
 <script>
     import { ethers } from "ethers";
-    import { isConnected, provider, signer } from "./stores.js";
-
-    let error = "";
+    import { isConnected, provider, signer, error } from "./stores.js";
 
     async function connect() {
         let eth = window["ethereum"];
 
         if (eth === undefined) {
-            error = "please install metamask and reload this page";
+            error.set("please install metamask and reload this page");
             return;
         }
 
@@ -20,11 +18,9 @@
 
             isConnected.set(true);
         } catch (err) {
-            error = err;
+            error.set(err);
             return;
         }
-
-        error = "";
     }
 </script>
 
@@ -32,9 +28,6 @@
     <h1>Connect</h1>
     <div class="connect">
         <div class="connect-button">
-            <div class="error">
-                <p>{error}</p>
-            </div>
             <button on:click={connect} disabled={$isConnected}>
                 {#if !$isConnected}
                     Connect to Metamask
