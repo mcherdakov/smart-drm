@@ -5,13 +5,13 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/mcherdakov/smart-drm/backend/internal/pkg/contracts/entity"
-	"github.com/mcherdakov/smart-drm/backend/internal/pkg/contracts/repostory"
+	"github.com/mcherdakov/smart-drm/backend/internal/pkg/contracts/repository"
 	"github.com/mcherdakov/smart-drm/backend/internal/services/drm"
 )
 
 func setupContract(
 	ctx context.Context,
-	contractRepo *repostory.Repository,
+	contractRepo *repository.Repository,
 	service *drm.DRMService,
 ) error {
 	dbContract, err := contractRepo.ContractByName(ctx, entity.ContractNameSmartDRM)

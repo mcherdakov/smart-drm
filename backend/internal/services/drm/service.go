@@ -12,6 +12,7 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/mcherdakov/smart-drm/backend/internal/generated/smartdrm"
+	"github.com/mcherdakov/smart-drm/backend/internal/pkg/proofs/entity"
 )
 
 const (
@@ -90,39 +91,73 @@ func (s *DRMService) DeployInstance(ctx context.Context) error {
 	return nil
 }
 
-func (s *DRMService) SetProof(ctx context.Context, p Proof) error {
+func (s *DRMService) ValidateProof(ctx context.Context, p entity.Proof) (string, error) {
 	parsedProof, err := s.parseProof(p)
 	if err != nil {
-		return err
+		return "", err
 	}
 
-	addr, err := s.userAddressFromProof(parsedProof, p.Hash)
+	channel, err := s.fetchChannel(parsedProof, p.Hash)
 	if err != nil {
-		return err
+		return "", err
+	}
+
+	balance, err := s.client.BalanceAt(ctx, *channel, nil)
+	if err != nil {
+		return "", err
+	}
+
+	if balance.Int64() < p.Value {
+		return "", fmt.Errorf("value exceeds channel balance")
+	}
+
+	chanProof, err := s.instance.GetChannelProof(nil, *channel)
+	if err != nil {
+		return "", err
+	}
+
+	if p.Value-chanProof.Value.Int64() < entity.SubscriptionPrice {
+		return "", fmt.Errorf("invalid price")
+	}
+
+	return channel.String(), nil
+}
+
+func (s *DRMService) SetProofs(ctx context.Context, proofs []entity.Proof) error {
+	channelProofs := make([]smartdrm.ChannelProof, 0, len(proofs))
+
+	for _, p := range proofs {
+		parsedProof, err := s.parseProof(p)
+		if err != nil {
+			return err
+		}
+
+		channel, err := s.fetchChannel(parsedProof, p.Hash)
+		if err != nil {
+			return err
+		}
+
+		channelProofs = append(channelProofs, smartdrm.ChannelProof{
+			Proof:   *parsedProof,
+			Channel: *channel,
+		})
+	}
+
+	return s.callContractSetProof(ctx, channelProofs)
+}
+
+func (s *DRMService) fetchChannel(p *smartdrm.Proof, h string) (*common.Address, error) {
+	addr, err := s.userAddressFromProof(p, h)
+	if err != nil {
+		return nil, err
 	}
 
 	channel, err := s.instance.GetUserChannel(nil, *addr)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	chanProof, err := s.instance.GetChannelProof(nil, channel)
-	if err != nil {
-		return err
-	}
-
-	if p.Value-chanProof.Value.Int64() < SubscriptionPrice {
-		return fmt.Errorf("invalid price")
-	}
-
-	proofs := []smartdrm.ChannelProof{
-		{
-			Proof:   *parsedProof,
-			Channel: channel,
-		},
-	}
-
-	return s.callContractSetProof(ctx, proofs)
+	return &channel, nil
 }
 
 func (s *DRMService) callContractSetProof(
@@ -163,7 +198,7 @@ func (s *DRMService) makeAuth(ctx context.Context) (*bind.TransactOpts, error) {
 	return auth, nil
 }
 
-func (s *DRMService) parseProof(p Proof) (*smartdrm.Proof, error) {
+func (s *DRMService) parseProof(p entity.Proof) (*smartdrm.Proof, error) {
 	rPart, err := hex.DecodeString(p.R[2:])
 	if err != nil {
 		return nil, err

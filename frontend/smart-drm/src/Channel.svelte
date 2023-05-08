@@ -27,7 +27,7 @@
     async function pay() {
         isProcessing = true;
 
-        const value = parseInt(channel.value) + cost;
+        const value = parseInt(channel.offChainValue) + cost;
         const date = new Date().toJSON().slice(0, 10);
 
         const payload = ethers.utils.defaultAbiCoder.encode(
@@ -50,11 +50,20 @@
         <p>
             <b>Channel contract address:</b>
             {channel.address}<br />
-            <b>Paid through channel:</b>
+            <b>Paid through channel (on-chain):</b>
             {channel.value}<br />
-            <b>Last paid date:</b>
+            <b>Paid through channel (off-chain):</b>
+            {channel.offChainValue}<br />
+            <b>Last paid date (on-chain):</b>
             {#if channel.date}
                 {channel.date}
+            {:else}
+                no payments yet
+            {/if}
+            <br />
+            <b>Last paid date (off-chain):</b>
+            {#if channel.offChainDate}
+                {channel.offChainDate}
             {:else}
                 no payments yet
             {/if}

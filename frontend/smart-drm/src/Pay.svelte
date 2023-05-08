@@ -5,7 +5,7 @@
     import { isConnected, provider, signer } from "./stores.js";
     import Channel from "./Channel.svelte";
 
-    let amount = "1";
+    let amount = "1000";
     let timeout = 1000000;
 
     let isProcessing = false;
@@ -44,6 +44,10 @@
     }
 
     async function fetchChannel() {
+        if (contract === undefined) {
+            return;
+        }
+
         const chanAddr = await contract.getUserChannel($signer.getAddress());
         if (
             ethers.BigNumber.from(chanAddr).toString() ==
@@ -55,10 +59,17 @@
         const chanInfo = await contract.getChannelProof(chanAddr);
         const chanBalance = await $provider.getBalance(chanAddr);
 
+        const res = await fetch(
+            `http://127.0.0.1:8000/proof?address=${chanAddr}`
+        );
+        const data = await res.json();
+
         channel = {
             ...chanInfo,
             address: chanAddr,
             balance: chanBalance,
+            offChainValue: data.value,
+            offChainDate: data.date,
         };
 
         chanExists = true;
@@ -68,7 +79,7 @@
         isProcessing = true;
 
         const tx = await contract.createChannel(timeout, {
-            value: ethers.utils.parseEther(amount),
+            value: ethers.utils.parseUnits(amount, "wei"),
         });
 
         await tx.wait(1);

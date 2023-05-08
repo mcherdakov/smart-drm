@@ -8,20 +8,26 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"github.com/mcherdakov/smart-drm/backend/internal/services/drm"
+	"github.com/mcherdakov/smart-drm/backend/internal/pkg/proofs/entity"
 )
 
 type drmService interface {
-	SetProof(ctx context.Context, p drm.Proof) error
+	ValidateProof(ctx context.Context, p entity.Proof) (string, error)
+}
+
+type proofsRepo interface {
+	SetProof(ctx context.Context, p entity.Proof, address string) error
 }
 
 type Handler struct {
-	drm drmService
+	drm  drmService
+	repo proofsRepo
 }
 
-func NewHandler(drm drmService) *Handler {
+func NewHandler(drm drmService, repo proofsRepo) *Handler {
 	return &Handler{
-		drm: drm,
+		drm:  drm,
+		repo: repo,
 	}
 }
 
@@ -32,13 +38,19 @@ func (h *Handler) Handle(c *gin.Context) {
 		return
 	}
 
-	var proof drm.Proof
+	var proof entity.Proof
 	if err := json.Unmarshal(rawBody, &proof); err != nil {
 		c.Error(err)
 		return
 	}
 
-	if err := h.drm.SetProof(c, proof); err != nil {
+	address, err := h.drm.ValidateProof(c, proof)
+	if err != nil {
+		c.Error(err)
+		return
+	}
+
+	if err := h.repo.SetProof(c, proof, address); err != nil {
 		c.Error(err)
 		return
 	}
