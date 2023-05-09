@@ -2,7 +2,10 @@ package entity
 
 import "github.com/zero-pkg/null"
 
-const SubscriptionPrice = 100
+const (
+	SubscriptionPrice = 100
+	DateFormat        = "2006-01-02"
+)
 
 type Proof struct {
 	V     int64  `json:"v"`

@@ -11,9 +11,11 @@ import (
 	"github.com/joho/godotenv"
 	"golang.org/x/sync/errgroup"
 
+	"github.com/mcherdakov/smart-drm/backend/internal/handlers/content"
 	drmHandler "github.com/mcherdakov/smart-drm/backend/internal/handlers/drm"
 	"github.com/mcherdakov/smart-drm/backend/internal/handlers/pay"
 	"github.com/mcherdakov/smart-drm/backend/internal/handlers/proof"
+	contentrepo "github.com/mcherdakov/smart-drm/backend/internal/pkg/content/repository"
 	contractsRepo "github.com/mcherdakov/smart-drm/backend/internal/pkg/contracts/repository"
 	proofsrepo "github.com/mcherdakov/smart-drm/backend/internal/pkg/proofs/repository"
 	"github.com/mcherdakov/smart-drm/backend/internal/services/drm"
@@ -53,6 +55,7 @@ func run() error {
 
 	contractRepo := contractsRepo.NewRepository(db)
 	proofsRepo := proofsrepo.NewRepository(db)
+	contentRepo := contentrepo.NewRepository(db)
 
 	if err := setupContract(ctx, contractRepo, drmService); err != nil {
 		return err
@@ -68,6 +71,8 @@ func run() error {
 
 	r.GET("/drm", drmHandler.NewHandler(drmService.Address()).Handle)
 	r.GET("/proof", proof.NewHandler(proofsRepo).Handle)
+	r.GET("/content", content.NewListHandler(contentRepo, drmService).Handle)
+	r.GET("/content/detail", content.NewDetailHandler(contentRepo, proofsRepo, drmService).Handle)
 	r.POST("/pay", pay.NewHandler(drmService, proofsRepo).Handle)
 
 	errg := errgroup.Group{}

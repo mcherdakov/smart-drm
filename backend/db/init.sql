@@ -14,4 +14,19 @@ create table if not exists proof (
     hash                text not null,
     value               bigint not null
 
+);
+
+create table if not exists content (
+    id                   serial primary key,
+    author               text not null,
+    header               text not null,
+    content              text not null,
+    last_commited_clicks integer not null
+);
+
+create table if not exists click (
+    content_id integer not null references content(id),
+    date       text not null,
+    address    text not null,
+    primary key(content_id, date, address)
 )

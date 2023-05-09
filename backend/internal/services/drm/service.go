@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"math/big"
+	"strings"
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
@@ -144,6 +145,19 @@ func (s *DRMService) SetProofs(ctx context.Context, proofs []entity.Proof) error
 	}
 
 	return s.callContractSetProof(ctx, channelProofs)
+}
+
+func (s *DRMService) UserAddrToChannelAddr(userAddr string) (string, error) {
+	if len(userAddr) < 3 {
+		return "", fmt.Errorf("address is too short")
+	}
+
+	channel, err := s.instance.GetUserChannel(nil, common.HexToAddress(userAddr[2:]))
+	if err != nil {
+		return "", err
+	}
+
+	return strings.ToLower(channel.String()), nil
 }
 
 func (s *DRMService) fetchChannel(p *smartdrm.Proof, h string) (*common.Address, error) {

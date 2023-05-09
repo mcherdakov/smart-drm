@@ -29,11 +29,15 @@
         return data;
     }
 
+    function currentDate() {
+        return new Date().toJSON().slice(0, 10);
+    }
+
     async function pay() {
         isProcessing = true;
 
         const value = parseInt(channel.offChainValue) + cost;
-        const date = new Date().toJSON().slice(0, 10);
+        const date = currentDate();
 
         const payload = ethers.utils.defaultAbiCoder.encode(
             ["address", "uint256", "string"],
@@ -79,10 +83,13 @@
     </div>
     <div class="chan-button">
         <button disabled={isProcessing} on:click={pay}>
-            {#if !isProcessing}
-                Pay for today
-            {:else}
+            {#if isProcessing}
                 Processing
+            {:else if channel.date === currentDate()}
+                Additional donation<br /><br />
+                Doesn't affect content availability
+            {:else}
+                Pay for today
             {/if}
         </button>
     </div>
@@ -100,5 +107,6 @@
     .chan-button {
         display: flex;
         justify-content: center;
+        width: 20%;
     }
 </style>

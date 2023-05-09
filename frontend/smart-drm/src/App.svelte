@@ -4,6 +4,8 @@
     import Connect from "./Connect.svelte";
     import Pay from "./Pay.svelte";
     import Error from "./Error.svelte";
+    import Stats from "./Stats.svelte";
+    import Content from "./Content.svelte";
     import { isConnected } from "./stores.js";
 </script>
 
@@ -15,6 +17,7 @@
                     {#if $isConnected}
                         <Link to="browse">Browse</Link>
                         <Link to="pay">Pay</Link>
+                        <Link to="stats">Stats</Link>
                     {:else}
                         <Link to="connect">Connect</Link>
                     {/if}
@@ -34,6 +37,14 @@
 
                 <Route path="pay">
                     <Pay />
+                </Route>
+
+                <Route path="stats">
+                    <Stats />
+                </Route>
+
+                <Route path="content/:id" let:params>
+                    <Content id={params.id} />
                 </Route>
             </div>
         </Router>

@@ -30,6 +30,7 @@
 
         if (data.error !== undefined) {
             error.set(data.error);
+            return;
         }
 
         contract = new ethers.Contract(data.address, data.abi, $signer);

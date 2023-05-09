@@ -1,17 +1,35 @@
 <script>
     import { navigate } from "svelte-navigator";
-    import { isConnected } from "./stores.js";
+    import { signer, isConnected, error } from "./stores.js";
     import { onMount } from "svelte";
+    import BrowseItem from "./BrowseItem.svelte";
 
-    onMount(() => {
+    let items = [];
+
+    onMount(async () => {
         if (!$isConnected) {
             navigate("/connect");
+            return;
         }
+
+        const res = await fetch(
+            `http://127.0.0.1:8000/content?address=${await $signer.getAddress()}`
+        );
+
+        const data = await res.json();
+        if (data.error !== undefined) {
+            error.set(data.error);
+        }
+
+        items = data;
     });
 </script>
 
 <div>
     <h1>Browse</h1>
+    {#each items as item (item.id)}
+        <BrowseItem {item} />
+    {/each}
 </div>
 
 <style>
