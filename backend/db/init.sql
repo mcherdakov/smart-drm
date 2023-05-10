@@ -20,13 +20,13 @@ create table if not exists content (
     id                   serial primary key,
     author               text not null,
     header               text not null,
-    content              text not null,
-    last_commited_clicks integer not null
+    content              text not null
 );
 
 create table if not exists click (
     content_id integer not null references content(id),
     date       text not null,
     address    text not null,
+    commited   boolean not null default false,
     primary key(content_id, date, address)
 )

@@ -17,10 +17,10 @@
                     {#if $isConnected}
                         <Link to="browse">Browse</Link>
                         <Link to="pay">Pay</Link>
-                        <Link to="stats">Stats</Link>
                     {:else}
                         <Link to="connect">Connect</Link>
                     {/if}
+                    <Link to="stats">Stats</Link>
                 </nav>
             </div>
             <Error />

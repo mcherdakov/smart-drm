@@ -15,6 +15,7 @@ import (
 	drmHandler "github.com/mcherdakov/smart-drm/backend/internal/handlers/drm"
 	"github.com/mcherdakov/smart-drm/backend/internal/handlers/pay"
 	"github.com/mcherdakov/smart-drm/backend/internal/handlers/proof"
+	"github.com/mcherdakov/smart-drm/backend/internal/handlers/stats"
 	contentrepo "github.com/mcherdakov/smart-drm/backend/internal/pkg/content/repository"
 	contractsRepo "github.com/mcherdakov/smart-drm/backend/internal/pkg/contracts/repository"
 	proofsrepo "github.com/mcherdakov/smart-drm/backend/internal/pkg/proofs/repository"
@@ -73,6 +74,7 @@ func run() error {
 	r.GET("/proof", proof.NewHandler(proofsRepo).Handle)
 	r.GET("/content", content.NewListHandler(contentRepo, drmService).Handle)
 	r.GET("/content/detail", content.NewDetailHandler(contentRepo, proofsRepo, drmService).Handle)
+	r.GET("/stats", stats.NewHandler(contentRepo, drmService).Handle)
 	r.POST("/pay", pay.NewHandler(drmService, proofsRepo).Handle)
 
 	errg := errgroup.Group{}

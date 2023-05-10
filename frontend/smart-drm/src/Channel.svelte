@@ -101,6 +101,7 @@
     }
 
     .chan-info {
+        display: flex;
         width: 80%;
     }
 
