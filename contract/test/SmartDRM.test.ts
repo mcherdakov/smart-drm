@@ -39,4 +39,24 @@ describe("SmartDRM", function () {
       );
     });
   });
+
+  describe("set clicks", function () {
+    it("set one", async function () {
+      const contract = smartDRM.connect(owner);
+      await contract.setCreatorsClicks([
+        { creator: creator.address, clicks: 1 },
+      ]);
+
+      const clicks = await contract.getCreatorClicks(creator.address);
+      assert.equal(clicks.toString(), "1");
+    });
+
+    it("set none", async function () {
+      const contract = smartDRM.connect(owner);
+      await contract.setCreatorsClicks([]);
+
+      const clicks = await contract.getCreatorClicks(creator.address);
+      assert.equal(clicks.toString(), "0");
+    });
+  });
 });

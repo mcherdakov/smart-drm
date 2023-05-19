@@ -11,6 +11,7 @@ import (
 	"github.com/joho/godotenv"
 	"golang.org/x/sync/errgroup"
 
+	"github.com/mcherdakov/smart-drm/backend/cmd/setup"
 	"github.com/mcherdakov/smart-drm/backend/internal/handlers/content"
 	drmHandler "github.com/mcherdakov/smart-drm/backend/internal/handlers/drm"
 	"github.com/mcherdakov/smart-drm/backend/internal/handlers/pay"
@@ -47,7 +48,7 @@ func run() error {
 		return err
 	}
 
-	db, closeFunc, err := setupDB()
+	db, closeFunc, err := setup.DB()
 	if err != nil {
 		return err
 	}
@@ -58,7 +59,7 @@ func run() error {
 	proofsRepo := proofsrepo.NewRepository(db)
 	contentRepo := contentrepo.NewRepository(db)
 
-	if err := setupContract(ctx, contractRepo, drmService); err != nil {
+	if err := setup.Contract(ctx, contractRepo, drmService); err != nil {
 		return err
 	}
 
@@ -85,6 +86,14 @@ func run() error {
 
 	errg.Go(func() error {
 		err := syncer.NewProofsSyncer(proofsRepo, drmService).Run(ctx)
+		if err != nil {
+			log.Println(err)
+		}
+		return err
+	})
+
+	errg.Go(func() error {
+		err := syncer.NewStatsSyncer(contentRepo, drmService).Run(ctx)
 		if err != nil {
 			log.Println(err)
 		}

@@ -85,7 +85,7 @@
         <button disabled={isProcessing} on:click={pay}>
             {#if isProcessing}
                 Processing
-            {:else if channel.date === currentDate()}
+            {:else if channel.offChainDate === currentDate()}
                 Additional donation<br /><br />
                 Doesn't affect content availability
             {:else}

@@ -15,16 +15,6 @@ const (
 	paymentsCountThreshold = 3
 )
 
-type drmService interface {
-	SetProofs(ctx context.Context, proofs []entity.Proof) error
-}
-
-type proofsRepo interface {
-	UnsyncedProofsAcquire(ctx context.Context, tx *sqlx.Tx) ([]entity.DBProof, error)
-	UnsyncedProofsUpdate(ctx context.Context, tx *sqlx.Tx, proofs []entity.DBProof) error
-	Transaction(ctx context.Context, f func(ctx context.Context, tx *sqlx.Tx) error) error
-}
-
 type ProofsSyncer struct {
 	repo proofsRepo
 	drm  drmService

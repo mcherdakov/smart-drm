@@ -10,15 +10,16 @@ import (
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/mcherdakov/smart-drm/backend/internal/generated/smartdrm"
-	"github.com/mcherdakov/smart-drm/backend/internal/pkg/proofs/entity"
+	proofsEntity "github.com/mcherdakov/smart-drm/backend/internal/pkg/proofs/entity"
 )
 
 const (
 	messagePrefix = "\x19Ethereum Signed Message:\n"
-	gasLimit      = 10000000
+	gasLimit      = 15000000
 )
 
 type DRMService struct {
@@ -92,7 +93,7 @@ func (s *DRMService) DeployInstance(ctx context.Context) error {
 	return nil
 }
 
-func (s *DRMService) ValidateProof(ctx context.Context, p entity.Proof) (string, error) {
+func (s *DRMService) ValidateProof(ctx context.Context, p proofsEntity.Proof) (string, error) {
 	parsedProof, err := s.parseProof(p)
 	if err != nil {
 		return "", err
@@ -117,14 +118,14 @@ func (s *DRMService) ValidateProof(ctx context.Context, p entity.Proof) (string,
 		return "", err
 	}
 
-	if p.Value-chanProof.Value.Int64() < entity.SubscriptionPrice {
+	if p.Value-chanProof.Value.Int64() < proofsEntity.SubscriptionPrice {
 		return "", fmt.Errorf("invalid price")
 	}
 
 	return channel.String(), nil
 }
 
-func (s *DRMService) SetProofs(ctx context.Context, proofs []entity.Proof) error {
+func (s *DRMService) SetProofs(ctx context.Context, proofs []proofsEntity.Proof) error {
 	channelProofs := make([]smartdrm.ChannelProof, 0, len(proofs))
 
 	for _, p := range proofs {
@@ -144,7 +145,22 @@ func (s *DRMService) SetProofs(ctx context.Context, proofs []entity.Proof) error
 		})
 	}
 
-	return s.callContractSetProof(ctx, channelProofs)
+	_, err := s.CallContractSetProof(ctx, channelProofs)
+	return err
+}
+
+func (s *DRMService) SetClicks(ctx context.Context, clicks map[string]uint32) error {
+	contractClicks := make([]smartdrm.CreatorClicks, 0, len(clicks))
+
+	for addr, c := range clicks {
+		contractClicks = append(contractClicks, smartdrm.CreatorClicks{
+			Creator: common.HexToAddress(addr),
+			Clicks:  c,
+		})
+	}
+
+	_, err := s.CallContractSetCreatorClicks(ctx, contractClicks)
+	return err
 }
 
 func (s *DRMService) UserAddrToChannelAddr(userAddr string) (string, error) {
@@ -174,22 +190,38 @@ func (s *DRMService) fetchChannel(p *smartdrm.Proof, h string) (*common.Address,
 	return &channel, nil
 }
 
-func (s *DRMService) callContractSetProof(
+func (s *DRMService) CallContractSetProof(
 	ctx context.Context,
 	proofs []smartdrm.ChannelProof,
-) error {
+) (*types.Receipt, error) {
 	auth, err := s.makeAuth(ctx)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	tx, err := s.instance.SetChannelsProofs(auth, proofs)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	_, err = bind.WaitMined(ctx, s.client, tx)
-	return err
+	return bind.WaitMined(ctx, s.client, tx)
+}
+
+func (s *DRMService) CallContractSetCreatorClicks(
+	ctx context.Context,
+	clicks []smartdrm.CreatorClicks,
+) (*types.Receipt, error) {
+	auth, err := s.makeAuth(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	tx, err := s.instance.SetCreatorsClicks(auth, clicks)
+	if err != nil {
+		return nil, err
+	}
+
+	return bind.WaitMined(ctx, s.client, tx)
 }
 
 func (s *DRMService) makeAuth(ctx context.Context) (*bind.TransactOpts, error) {
@@ -212,7 +244,7 @@ func (s *DRMService) makeAuth(ctx context.Context) (*bind.TransactOpts, error) {
 	return auth, nil
 }
 
-func (s *DRMService) parseProof(p entity.Proof) (*smartdrm.Proof, error) {
+func (s *DRMService) parseProof(p proofsEntity.Proof) (*smartdrm.Proof, error) {
 	rPart, err := hex.DecodeString(p.R[2:])
 	if err != nil {
 		return nil, err

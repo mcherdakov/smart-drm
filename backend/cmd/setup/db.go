@@ -1,4 +1,4 @@
-package main
+package setup
 
 import (
 	"database/sql"
@@ -9,7 +9,7 @@ import (
 	_ "github.com/lib/pq"
 )
 
-func setupDB() (*sqlx.DB, func() error, error) {
+func DB() (*sqlx.DB, func() error, error) {
 	conn := fmt.Sprintf(
 		`
         host=%s

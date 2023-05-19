@@ -22,7 +22,7 @@ struct CreatorClicks {
 }
 
 contract SmartDRM {
-    address i_creator;
+    address i_owner;
 
     mapping(address => Channel) private s_user_channel;
     mapping(Channel => Proof) private s_proofs;
@@ -31,7 +31,7 @@ contract SmartDRM {
     mapping(address => uint32) private s_creator_clicks;
 
     constructor() {
-        i_creator = msg.sender;
+        i_owner = msg.sender;
     }
 
     function createChannel(uint256 timeout) public payable {
@@ -44,23 +44,25 @@ contract SmartDRM {
         s_proofs[channel] = Proof(0, 0, 0, 0, "");
     }
 
-    function setCreatorsClicks(CreatorClicks[] memory clicks) public {
-        if (msg.sender != i_creator) {
-            revert("sender must be creator");
-        }
+    function closeChannel() public view {}
 
+    function splitBalance() public view {}
+
+    function setCreatorsClicks(CreatorClicks[] memory clicks) public {
+        if (msg.sender != i_owner) {
+            revert("sender must be owner");
+        }
         for (uint256 i = 0; i < clicks.length; i++) {
             if (s_creator_clicks[clicks[i].creator] == 0) {
                 s_creators.push(clicks[i].creator);
             }
-
-            s_creator_clicks[clicks[i].creator] = clicks[i].clicks;
+            s_creator_clicks[clicks[i].creator] += clicks[i].clicks;
         }
     }
 
     function setChannelsProofs(ChannelProof[] memory proofs) public {
-        if (msg.sender != i_creator) {
-            revert("sender must be creator");
+        if (msg.sender != i_owner) {
+            revert("sender must be owner");
         }
 
         for (uint256 i = 0; i < proofs.length; i++) {

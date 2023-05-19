@@ -176,3 +176,69 @@ func (r *Repository) CreateClick(ctx context.Context, click entity.Click) error 
 
 	return err
 }
+
+func (r *Repository) UnsyncedClicksAcquire(ctx context.Context, tx *sqlx.Tx) ([]entity.Click, error) {
+	rows, err := tx.QueryxContext(
+		ctx,
+		`
+        select content_id, date, address, commited from click
+            where commited = 'f'
+        for update skip locked
+        `,
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	clicks := []entity.Click{}
+
+	for rows.Next() {
+		var click entity.Click
+
+		if err := rows.StructScan(&click); err != nil {
+			return nil, err
+		}
+
+		clicks = append(clicks, click)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return clicks, nil
+}
+
+func (r *Repository) UnsyncedClicksUpdate(ctx context.Context, tx *sqlx.Tx, clicks []entity.Click) error {
+	_, err := tx.NamedExecContext(
+		ctx,
+		`
+            insert into click(content_id, date, address, commited)
+                values (:content_id, :date, :address, :commited)
+            on conflict(content_id, date, address) do update set
+                commited=excluded.commited
+        `,
+		clicks,
+	)
+
+	return err
+}
+
+func (r *Repository) Transaction(ctx context.Context, f func(ctx context.Context, tx *sqlx.Tx) error) error {
+	tx, err := r.db.BeginTxx(ctx, nil)
+	if err != nil {
+		return err
+	}
+
+	err = f(ctx, tx)
+	if err != nil {
+		_ = tx.Rollback()
+
+		return err
+	}
+
+	return tx.Commit()
+}

@@ -6,7 +6,7 @@
     import Channel from "./Channel.svelte";
 
     let amount = "1000";
-    let timeout = 1000000;
+    let timeout = 30;
 
     let isProcessing = false;
     let chanExists = false;
@@ -87,7 +87,7 @@
     async function createContract() {
         isProcessing = true;
 
-        const tx = await contract.createChannel(timeout, {
+        const tx = await contract.createChannel(timeout * 86400, {
             value: ethers.utils.parseUnits(amount, "wei"),
         });
 
@@ -102,25 +102,33 @@
 <div>
     <h1>Pay</h1>
     <div class="page">
-        <form on:submit|preventDefault={createContract}>
-            <input bind:value={amount} {disabled} />
-            <input bind:value={timeout} {disabled} />
-            <button {disabled}>
-                {#if isProcessing}
-                    Processing
-                {:else if chanExists}
-                    Channel created
-                {:else}
-                    Create channel
-                {/if}
-            </button>
-        </form>
+        <div class="channel">
+            <form on:submit|preventDefault={createContract}>
+                <label>
+                    <input bind:value={amount} {disabled} />
+                    wei
+                </label>
+                <label>
+                    <input bind:value={timeout} {disabled} />
+                    days
+                </label>
+                <button {disabled}>
+                    {#if isProcessing}
+                        Processing
+                    {:else if chanExists}
+                        Channel created
+                    {:else}
+                        Create channel
+                    {/if}
+                </button>
+            </form>
 
-        {#if chanExists}
-            <Channel {channel} />
-        {:else}
-            <p>Created channel will be displayed here</p>
-        {/if}
+            {#if chanExists}
+                <Channel {channel} />
+            {:else}
+                <p>Created channel will be displayed here</p>
+            {/if}
+        </div>
     </div>
 </div>
 

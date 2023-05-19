@@ -1,4 +1,4 @@
-package main
+package setup
 
 import (
 	"context"
@@ -9,7 +9,7 @@ import (
 	"github.com/mcherdakov/smart-drm/backend/internal/services/drm"
 )
 
-func setupContract(
+func Contract(
 	ctx context.Context,
 	contractRepo *repository.Repository,
 	service *drm.DRMService,
