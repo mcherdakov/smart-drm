@@ -46,7 +46,32 @@ contract SmartDRM {
 
     function closeChannel() public view {}
 
-    function splitBalance() public view {}
+    function splitBalance() public {
+        if (msg.sender != i_owner) {
+            revert("sender must be owner");
+        }
+
+        uint64 total_clicks = 0;
+
+        for (uint256 i = 0; i < s_creators.length; i++) {
+            total_clicks += s_creator_clicks[s_creators[i]];
+        }
+
+        uint256 balance = address(this).balance;
+
+        for (uint256 i = 0; i < s_creators.length; i++) {
+            uint256 share = (balance * s_creator_clicks[s_creators[i]]) /
+                total_clicks;
+
+            if (!payable(s_creators[i]).send(share)) {
+                revert("payment error");
+            }
+
+            delete s_creator_clicks[s_creators[i]];
+        }
+
+        delete s_creators;
+    }
 
     function setCreatorsClicks(CreatorClicks[] memory clicks) public {
         if (msg.sender != i_owner) {
@@ -85,4 +110,6 @@ contract SmartDRM {
     {
         return s_proofs[channel];
     }
+
+    receive() external payable {}
 }

@@ -12,6 +12,7 @@ import (
 	"golang.org/x/sync/errgroup"
 
 	"github.com/mcherdakov/smart-drm/backend/cmd/setup"
+	"github.com/mcherdakov/smart-drm/backend/internal/finilizers"
 	"github.com/mcherdakov/smart-drm/backend/internal/handlers/content"
 	drmHandler "github.com/mcherdakov/smart-drm/backend/internal/handlers/drm"
 	"github.com/mcherdakov/smart-drm/backend/internal/handlers/pay"
@@ -94,6 +95,14 @@ func run() error {
 
 	errg.Go(func() error {
 		err := syncer.NewStatsSyncer(contentRepo, drmService).Run(ctx)
+		if err != nil {
+			log.Println(err)
+		}
+		return err
+	})
+
+	errg.Go(func() error {
+		err := finilizers.NewBalanceFinilizer(drmService).Run(ctx)
 		if err != nil {
 			log.Println(err)
 		}

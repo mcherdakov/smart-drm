@@ -59,4 +59,30 @@ describe("SmartDRM", function () {
       assert.equal(clicks.toString(), "0");
     });
   });
+
+  describe("split", function () {
+    it("between two", async function () {
+      const contract = smartDRM.connect(owner);
+      await contract.setCreatorsClicks([
+        { creator: creator.address, clicks: 1 },
+        { creator: user.address, clicks: 2 },
+      ]);
+
+      await owner.sendTransaction({
+        to: contract.address,
+        value: 3,
+      });
+
+      const userBefore = await user.getBalance();
+      const creatorBefore = await creator.getBalance();
+
+      await smartDRM.splitBalance();
+
+      const userAfter = await user.getBalance();
+      const creatorAfter = await creator.getBalance();
+
+      assert.equal(userAfter.sub(userBefore).toString(), "2");
+      assert.equal(creatorAfter.sub(creatorBefore).toString(), "1");
+    });
+  });
 });

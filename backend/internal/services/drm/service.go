@@ -190,6 +190,20 @@ func (s *DRMService) fetchChannel(p *smartdrm.Proof, h string) (*common.Address,
 	return &channel, nil
 }
 
+func (s *DRMService) CallContractSplitBalance(ctx context.Context) (*types.Receipt, error) {
+	auth, err := s.makeAuth(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	tx, err := s.instance.SplitBalance(auth)
+	if err != nil {
+		return nil, err
+	}
+
+	return bind.WaitMined(ctx, s.client, tx)
+}
+
 func (s *DRMService) CallContractSetProof(
 	ctx context.Context,
 	proofs []smartdrm.ChannelProof,
