@@ -13,6 +13,7 @@ import (
 
 	"github.com/mcherdakov/smart-drm/backend/cmd/setup"
 	"github.com/mcherdakov/smart-drm/backend/internal/finilizers"
+	closehandler "github.com/mcherdakov/smart-drm/backend/internal/handlers/close"
 	"github.com/mcherdakov/smart-drm/backend/internal/handlers/content"
 	drmHandler "github.com/mcherdakov/smart-drm/backend/internal/handlers/drm"
 	"github.com/mcherdakov/smart-drm/backend/internal/handlers/pay"
@@ -78,6 +79,7 @@ func run() error {
 	r.GET("/content/detail", content.NewDetailHandler(contentRepo, proofsRepo, drmService).Handle)
 	r.GET("/stats", stats.NewHandler(contentRepo, drmService).Handle)
 	r.POST("/pay", pay.NewHandler(drmService, proofsRepo).Handle)
+	r.POST("/close", closehandler.NewHandler(drmService, proofsRepo).Handle)
 
 	errg := errgroup.Group{}
 
@@ -103,6 +105,14 @@ func run() error {
 
 	errg.Go(func() error {
 		err := finilizers.NewBalanceFinilizer(drmService).Run(ctx)
+		if err != nil {
+			log.Println(err)
+		}
+		return err
+	})
+
+	errg.Go(func() error {
+		err := finilizers.NewChannelsFinilizer(proofsRepo, drmService).Run(ctx)
 		if err != nil {
 			log.Println(err)
 		}

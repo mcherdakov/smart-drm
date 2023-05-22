@@ -7,12 +7,14 @@ import (
 	"fmt"
 	"math/big"
 	"strings"
+	"time"
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
+	chancontract "github.com/mcherdakov/smart-drm/backend/internal/generated/channel"
 	"github.com/mcherdakov/smart-drm/backend/internal/generated/smartdrm"
 	proofsEntity "github.com/mcherdakov/smart-drm/backend/internal/pkg/proofs/entity"
 )
@@ -190,6 +192,41 @@ func (s *DRMService) fetchChannel(p *smartdrm.Proof, h string) (*common.Address,
 	return &channel, nil
 }
 
+func (s *DRMService) CallContractCloseChannel(
+	ctx context.Context,
+	hash []byte,
+	channel common.Address,
+) (*types.Receipt, error) {
+	auth, err := s.makeAuth(ctx)
+	if err != nil {
+
+		return nil, err
+	}
+
+	prefixedHash := []byte(messagePrefix)
+	prefixedHash = append(prefixedHash, []byte(fmt.Sprint(len(hash)))...)
+	prefixedHash = append(prefixedHash, hash...)
+	msg := crypto.Keccak256(prefixedHash)
+
+	sig, err := crypto.Sign(msg, s.privateKey)
+	if err != nil {
+		return nil, err
+	}
+
+	tx, err := s.instance.CloseChannel(
+		auth,
+		channel,
+		sig[64]+27,
+		*(*[32]byte)(sig[:32]),
+		*(*[32]byte)(sig[32:64]),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return bind.WaitMined(ctx, s.client, tx)
+}
+
 func (s *DRMService) CallContractSplitBalance(ctx context.Context) (*types.Receipt, error) {
 	auth, err := s.makeAuth(ctx)
 	if err != nil {
@@ -236,6 +273,26 @@ func (s *DRMService) CallContractSetCreatorClicks(
 	}
 
 	return bind.WaitMined(ctx, s.client, tx)
+}
+
+func (s *DRMService) GetChannelFinishTimestamp(addr common.Address) (*time.Time, error) {
+	channel, err := chancontract.NewChannel(addr, s.client)
+	if err != nil {
+		return nil, err
+	}
+
+	timeout, err := channel.GetChannelTimeout(nil)
+	if err != nil {
+		return nil, err
+	}
+
+	start, err := channel.GetStartDate(nil)
+	if err != nil {
+		return nil, err
+	}
+
+	t := time.Unix(timeout.Int64()+start.Int64(), 0)
+	return &t, nil
 }
 
 func (s *DRMService) makeAuth(ctx context.Context) (*bind.TransactOpts, error) {

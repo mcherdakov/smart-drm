@@ -98,6 +98,21 @@
 
         isProcessing = false;
     }
+
+    async function close() {
+        const res = await fetch(`${config.url}/close`, {
+            method: "POST",
+            body: JSON.stringify({ address: await $signer.getAddress() }),
+        });
+
+        const data = await res.json();
+        if (data.error !== undefined) {
+            error.set(data.error);
+            return;
+        }
+
+        contract = undefined;
+    }
 </script>
 
 <div>
@@ -130,6 +145,11 @@
                 <p>Created channel will be displayed here</p>
             {/if}
         </div>
+        {#if chanExists}
+            <div>
+                <button on:click={close}> Close channel </button>
+            </div>
+        {/if}
     </div>
 </div>
 

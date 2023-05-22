@@ -38,13 +38,20 @@ contract SmartDRM {
         address payable contractAddress = payable(address(this));
         Channel channel = (new Channel){value: msg.value}(
             contractAddress,
+            payable(msg.sender),
+            i_owner,
             timeout
         );
         s_user_channel[msg.sender] = channel;
         s_proofs[channel] = Proof(0, 0, 0, 0, "");
     }
 
-    function closeChannel(Channel channel) public {
+    function closeChannel(
+        Channel channel,
+        uint8 v,
+        bytes32 r,
+        bytes32 s
+    ) public {
         if (msg.sender != i_owner) {
             revert("sender must be owner");
         }
@@ -57,6 +64,10 @@ contract SmartDRM {
             proof.value,
             proof.date
         );
+        channel.closeChannel(v, r, s, proof.value, proof.date);
+
+        delete s_user_channel[channel.getChannelSender()];
+        delete s_proofs[channel];
     }
 
     function splitBalance() public {

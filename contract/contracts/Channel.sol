@@ -4,14 +4,21 @@ pragma solidity ^0.8.17;
 contract Channel {
     address payable private i_channelSender;
     address payable private i_channelRecipient;
+    address private i_authorizer;
     uint256 private i_startDate;
     uint256 private i_channelTimeout;
 
     mapping(bytes32 => address) private s_signatures;
 
-    constructor(address payable to, uint256 timeout) payable {
+    constructor(
+        address payable to,
+        address payable from,
+        address authorizer,
+        uint256 timeout
+    ) payable {
         i_channelRecipient = to;
-        i_channelSender = payable(msg.sender);
+        i_channelSender = from;
+        i_authorizer = authorizer;
         i_startDate = block.timestamp;
         i_channelTimeout = timeout;
     }
@@ -32,7 +39,7 @@ contract Channel {
 
         signer = ecrecover(prefixedHash, v, r, s);
 
-        if (signer != i_channelSender && signer != i_channelRecipient) {
+        if (signer != i_channelSender && signer != i_authorizer) {
             revert("invalid signer or hash");
         }
 
@@ -77,5 +84,9 @@ contract Channel {
         return s_signatures[proof];
     }
 
-    function destruct() private {}
+    function destruct() private {
+        if (!i_channelRecipient.send(address(this).balance)) {
+            revert("payment error");
+        }
+    }
 }

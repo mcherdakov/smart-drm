@@ -49,6 +49,16 @@ func (r *Repository) SetProof(ctx context.Context, p entity.Proof, address strin
 	return err
 }
 
+func (r *Repository) DeleteProof(ctx context.Context, address string) error {
+	_, err := r.db.ExecContext(
+		ctx,
+		`delete from proof where address = $1`,
+		address,
+	)
+
+	return err
+}
+
 func (r *Repository) ProofByAddress(ctx context.Context, address string) (*entity.DBProof, error) {
 	var proof entity.DBProof
 
@@ -68,6 +78,39 @@ func (r *Repository) ProofByAddress(ctx context.Context, address string) (*entit
 	}
 
 	return &proof, nil
+}
+
+func (r *Repository) Proofs(ctx context.Context) ([]entity.DBProof, error) {
+	rows, err := r.db.QueryxContext(
+		ctx,
+		`
+        select v, r, s, hash, date, value, address, last_commited_date, last_commited_value from proof
+        `,
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	proofs := []entity.DBProof{}
+
+	for rows.Next() {
+		var proof entity.DBProof
+
+		if err := rows.StructScan(&proof); err != nil {
+			return nil, err
+		}
+
+		proofs = append(proofs, proof)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return proofs, nil
 }
 
 func (r *Repository) UnsyncedProofsAcquire(ctx context.Context, tx *sqlx.Tx) ([]entity.DBProof, error) {

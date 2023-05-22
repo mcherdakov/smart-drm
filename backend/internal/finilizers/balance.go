@@ -3,17 +3,11 @@ package finilizers
 import (
 	"context"
 	"time"
-
-	"github.com/ethereum/go-ethereum/core/types"
 )
 
 const (
 	balanceSleepInterval = time.Hour * 24
 )
-
-type drmService interface {
-	CallContractSplitBalance(ctx context.Context) (*types.Receipt, error)
-}
 
 type BalanceFinilizer struct {
 	drm drmService
