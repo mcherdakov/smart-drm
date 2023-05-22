@@ -1,0 +1,39 @@
+version: "3"
+services:
+  chain:
+    image: ethereumoptimism/hardhat-node
+    ports:
+      - 8545:8545
+  postgres:
+    image: postgres
+    environment:
+      - POSTGRES_DB=smartdrm
+      - POSTGRES_USER=node
+      - POSTGRES_PASSWORD=password
+    volumes:
+       - ./backend/db:/docker-entrypoint-initdb.d
+    ports:
+      - 5434:5432
+  backend:
+    build:
+      dockerfile: Dockerfile
+      context: ./backend
+    environment:
+      - PG_DB=smartdrm
+      - PG_USER=node
+      - PG_HOST=postgres
+      - PG_PORT=5432
+      - PG_PASSWORD=password
+      - PRIVATE_KEY=ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80
+      - CHAIN_ADDRESS=http://chain:8545
+    ports:
+      - 8000:8000
+    depends_on:
+      - postgres
+      - chain
+  frontend:
+    build:
+      dockerfile: Dockerfile
+      context: ./frontend/smart-drm
+    ports:
+      - 3000:3000
