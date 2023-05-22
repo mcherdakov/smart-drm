@@ -3,6 +3,7 @@
     import { signer, isConnected, error } from "./stores.js";
     import { onMount } from "svelte";
     import BrowseItem from "./BrowseItem.svelte";
+    import { config } from "./config.js";
 
     let items = [];
 
@@ -13,7 +14,7 @@
         }
 
         const res = await fetch(
-            `http://127.0.0.1:8000/content?address=${await $signer.getAddress()}`
+            `${config.url}/content?address=${await $signer.getAddress()}`
         );
 
         const data = await res.json();

@@ -1,12 +1,13 @@
 <script>
     import { error } from "./stores.js";
     import { onMount } from "svelte";
+    import { config } from "./config.js";
 
     let contentStats = [];
     let authorStats = [];
 
     onMount(async () => {
-        const res = await fetch(`http://127.0.0.1:8000/stats`);
+        const res = await fetch(`${config.url}/stats`);
 
         const data = await res.json();
         if (data.error !== undefined) {

@@ -44,7 +44,20 @@ contract SmartDRM {
         s_proofs[channel] = Proof(0, 0, 0, 0, "");
     }
 
-    function closeChannel() public view {}
+    function closeChannel(Channel channel) public {
+        if (msg.sender != i_owner) {
+            revert("sender must be owner");
+        }
+
+        Proof memory proof = s_proofs[channel];
+        channel.closeChannel(
+            proof.v,
+            proof.r,
+            proof.s,
+            proof.value,
+            proof.date
+        );
+    }
 
     function splitBalance() public {
         if (msg.sender != i_owner) {

@@ -1,6 +1,7 @@
 <script>
     import { ethers } from "ethers";
     import { signer, error } from "./stores.js";
+    import { config } from "./config.js";
 
     export let channel;
     let isProcessing = false;
@@ -16,7 +17,7 @@
             hash: hash,
         };
 
-        const res = await fetch("http://127.0.0.1:8000/pay", {
+        const res = await fetch(`${config.url}/pay`, {
             method: "POST",
             body: JSON.stringify(req),
         });

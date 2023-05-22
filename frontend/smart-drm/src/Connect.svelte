@@ -55,10 +55,4 @@
         width: 50%;
         flex-direction: column;
     }
-
-    .error {
-        display: flex;
-        justify-content: center;
-        color: red;
-    }
 </style>

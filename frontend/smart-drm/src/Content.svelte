@@ -2,13 +2,16 @@
     import { navigate } from "svelte-navigator";
     import { onMount } from "svelte";
     import { signer, error } from "./stores.js";
+    import { config } from "./config.js";
 
     export let id;
     let content;
 
     onMount(async () => {
         const res = await fetch(
-            `http://127.0.0.1:8000/content/detail?id=${id}&address=${await $signer.getAddress()}`
+            `${
+                config.url
+            }/content/detail?id=${id}&address=${await $signer.getAddress()}`
         );
         const data = await res.json();
 
@@ -47,4 +50,3 @@
         text-align: center;
     }
 </style>
-

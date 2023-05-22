@@ -4,6 +4,7 @@
     import { navigate } from "svelte-navigator";
     import { isConnected, provider, signer, error } from "./stores.js";
     import Channel from "./Channel.svelte";
+    import { config } from "./config.js";
 
     let amount = "1000";
     let timeout = 30;
@@ -25,7 +26,7 @@
 
         isProcessing = true;
 
-        const res = await fetch("http://127.0.0.1:8000/drm");
+        const res = await fetch(`${config.url}/drm`);
         const data = await res.json();
 
         if (data.error !== undefined) {
